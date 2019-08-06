@@ -1,20 +1,44 @@
-#define _XOPEN_SOURCE 700
+/*
+ * UNG's Not GNU
+ *
+ * Copyright (c) 2011-2019, Jakob Kaivo <jkk@ung.org>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
+#define _XOPEN_SOURCE 500
 #include <errno.h>
 #include <locale.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 
-#define NICE_UTILITY_NOT_FOUND		127
-#define NICE_UTILITY_NOT_INVOKED	126
+#define UTILITY_NOT_INVOKED	(126)
+#define UTILITY_NOT_FOUND	(127)
 
 int main(int argc, char *argv[])
 {
-	int increment = 0;
-	int c;
-
 	setlocale(LC_ALL, "");
+	int increment = 0;
 
+	int c;
 	while ((c = getopt(argc, argv, "n:")) != -1) {
 		switch (c) {
 		case 'n':
@@ -26,20 +50,13 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	argv += optind;
-
 	errno = 0;
 	if (nice(increment) == -1 && errno != 0) {
 		perror("nice");
 	}
 
-	execvp(argv[0], argv);
+	execvp(argv[optind], argv + optind);
 
-	perror("nice");
-
-	if (errno == ENOENT) {
-		return NICE_UTILITY_NOT_FOUND;
-	}
-
-	return NICE_UTILITY_NOT_INVOKED;
+	fprintf(stderr, "nice: %s: %s\n", argv[optind], strerror(errno));
+	return errno == ENOENT ? UTILITY_NOT_FOUND : UTILITY_NOT_INVOKED;
 }
