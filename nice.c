@@ -50,6 +50,11 @@ int main(int argc, char *argv[])
 		}
 	}
 
+	if (optind >= argc) {
+		fprintf(stderr, "nice: missing operand\n");
+		return 1;
+	}
+
 	errno = 0;
 	if (nice(increment) == -1 && errno != 0) {
 		perror("nice");
